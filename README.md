@@ -63,7 +63,7 @@ The calculator automatically computes optimal feed and plunge rates while respec
 ### Option 1: Use Online (Recommended)
 Visit the live calculator:
 ```
-https://[your-username].github.io/cnc-feeds-calculator/
+https://github.com/tchau23/cnc-feedsnspeed-calculator/ 
 ```
 
 ### Option 2: Download and Run Locally
