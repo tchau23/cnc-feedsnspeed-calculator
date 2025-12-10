@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CNC Feeds & Speeds Calculator - Whiteside Bits</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 1em;
+        }
+        
+        .main-content {
+            padding: 30px;
+        }
+        
+        .input-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        .input-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #2c3e50;
+            font-size: 0.95em;
+        }
+        
+        .input-group select,
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+        
+        .input-group select:focus,
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .calculate-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 10px;
+        }
+        
+        .calculate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .calculate-btn:active {
+            transform: translateY(0);
+        }
+        
+        .results-section {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            display: none;
+        }
+        
+        .results-section.show {
+            display: block;
+            animation: slideIn 0.5s ease;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .result-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .result-card h3 {
+            color: #667eea;
+            font-size: 0.9em;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .result-card .value {
+            font-size: 1.8em;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+        
+        .result-card .unit {
+            font-size: 0.9em;
+            color: #7f8c8d;
+            margin-left: 5px;
+        }
+        
+        .warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+            color: #856404;
+        }
+        
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+            color: #0d47a1;
+        }
+        
+        .formula-section {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border: 2px solid #e0e0e0;
+        }
+        
+        .formula-section h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+        
+        .formula {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+            border-left: 3px solid #667eea;
+        }
+        
+        .bit-info {
+            background: #e8eaf6;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+        
+        .bit-info p {
+            margin: 5px 0;
+            color: #2c3e50;
+        }
+        
+        .custom-override {
+            background: #fff3e0;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border: 2px dashed #ff9800;
+            display: none;
+        }
+        
+        .custom-override.show {
+            display: block;
+        }
+        
+        .custom-override h3 {
+            color: #e65100;
+            margin-bottom: 15px;
+        }
+        
+        .toggle-custom {
+            background: #ff9800;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 15px;
+            font-weight: 600;
+        }
+        
+        .toggle-custom:hover {
+            background: #f57c00;
+        }
+        
+        .footer {
+            background: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            font-size: 0.9em;
+        }
+        
+        @media (max-width: 768px) {
+            .two-column {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 1.5em;
+            }
+            
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media print {
+            body {
+                background: white;
+            }
+            
+            .calculate-btn,
+            .toggle-custom {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔧 CNC Feeds & Speeds Calculator</h1>
+            <p>Whiteside Router Bits | Avid Desktop CNC | VCarve Pro</p>
+        </div>
+        
+        <div class="main-content">
+            <div class="input-section">
+                <h2 style="margin-bottom: 20px; color: #2c3e50;">Input Parameters</h2>
+                
+                <div class="two-column">
+                    <div class="input-group">
+                        <label for="material">Material Type</label>
+                        <select id="material">
+                            <option value="">-- Select Material --</option>
+                            <option value="plywood">Plywood</option>
+                            <option value="softwood">Softwood (Pine, Cedar)</option>
+                            <option value="hardwood">Hardwood (Cherry, Maple, Walnut)</option>
+                            <option value="mdf">MDF</option>
+                            <option value="acrylic">Acrylic</option>
+                        </select>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="operation">Operation Type</label>
+                        <select id="operation">
+                            <option value="">-- Select Operation --</option>
+                            <option value="roughing">Roughing</option>
+                            <option value="finishing">Finishing</option>
+                            <option value="pocketing">Pocketing</option>
+                            <option value="profiling">Profiling</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <label for="bitCategory">Bit Category</label>
+                    <select id="bitCategory" onchange="updateBitList()">
+                        <option value="">-- Select Bit Category --</option>
+                        <option value="upcut">Upcut Spiral - Solid Carbide</option>
+                        <option value="downcut">Downcut Spiral - Solid Carbide</option>
+                        <option value="compression">Compression Spiral</option>
+                        <option value="ballnose">Ball Nose</option>
+                        <option value="tapered">Tapered Ball Nose</option>
+                        <option value="vbit">V-Bits & Pointed</option>
+                        <option value="specialty">Specialty (Bowl, Plunge, Carving)</option>
+                    </select>
+                </div>
+                
+                <div class="input-group">
+                    <label for="bit">Specific Bit</label>
+                    <select id="bit">
+                        <option value="">-- Select Bit Category First --</option>
+                    </select>
+                </div>
+                
+                <div class="input-group">
+                    <label for="rpm">Spindle RPM</label>
+                    <input type="number" id="rpm" value="18000" min="10000" max="24000" step="1000">
+                </div>
+                
+                <button class="calculate-btn" onclick="calculate()">Calculate Feeds & Speeds</button>
+                <button class="toggle-custom" onclick="toggleCustom()">Toggle Custom Calculator</button>
+            </div>
+            
+            <div class="results-section" id="results">
+                <h2 style="margin-bottom: 15px; color: #2c3e50;">📊 Calculated Results</h2>
+                
+                <div class="bit-info" id="bitInfo"></div>
+                
+                <div class="results-grid" id="resultsGrid"></div>
+                
+                <div id="warnings"></div>
+                
+                <div class="formula-section">
+                    <h3>📐 Formulas Used</h3>
+                    <div class="formula">
+                        <strong>Feed Rate (IPM)</strong> = RPM × Number of Flutes × Chip Load
+                    </div>
+                    <div class="formula">
+                        <strong>Plunge Rate (IPM)</strong> = min(Feed Rate × 0.3, 60 IPM) — Conservative for safety
+                    </div>
+                    <div class="formula">
+                        <strong>Depth per Pass</strong> = Bit Diameter × Material Factor
+                    </div>
+                    <div class="formula">
+                        <strong>Stepover %</strong> = Based on operation type and bit geometry
+                    </div>
+                </div>
+            </div>
+            
+            <div class="custom-override" id="customOverride">
+                <h3>⚙️ Custom Calculator</h3>
+                <p style="margin-bottom: 15px; color: #5d4037;">Enter your preferred cutting parameters. Feed rates will be calculated automatically:</p>
+                
+                <div class="two-column">
+                    <div class="input-group">
+                        <label for="reverseDepth">Desired Depth per Pass (inches)</label>
+                        <input type="number" id="reverseDepth" step="0.001" placeholder="e.g., 0.125">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="reverseStepover">Desired Stepover (%)</label>
+                        <input type="number" id="reverseStepover" step="1" placeholder="e.g., 45">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="customChipload">Custom Chipload (inches per tooth)</label>
+                        <input type="number" id="customChipload" step="0.0001" placeholder="Optional - uses default if empty">
+                    </div>
+                </div>
+                
+                <button class="calculate-btn" onclick="reverseCalculate()" style="margin-top: 15px;">Calculate Feed & Speed</button>
+                <p style="font-size: 0.85em; margin-top: 10px; color: #666;"><em>Uses current material, bit, operation, and RPM from main calculator.</em></p>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Made for MIX Workshop by Tan | Avid Desktop CNC | VCarve Pro | Mach4</p>
+            <p style="margin-top: 10px; font-size: 0.85em; opacity: 0.8;">
+                ⚠️ These are recommendation settings. Always make test cuts in scrap material before cutting your final piece.
+            </p>
+        </div>
+    </div>
+    
+    <script>
+        // Whiteside Bit Database (from catalog photo + online specs)
+        const bitDatabase = {
+            upcut: [
+                { id: 'RU1600', name: 'RU1600 - 1/8" Dia, 1/2" Cut Length', diameter: 0.125, cutLength: 0.5, flutes: 2, rpm: [16000, 18000] },
+                { id: 'RU1800', name: 'RU1800 - 3/16" Dia, 3/4" Cut Length', diameter: 0.1875, cutLength: 0.75, flutes: 2, rpm: [16000, 18000] },
+                { id: 'RU2075', name: 'RU2075 - 1/4" Dia, 3/4" Cut Length', diameter: 0.25, cutLength: 0.75, flutes: 2, rpm: [16000, 18000] },
+                { id: 'RU2100', name: 'RU2100 - 1/4" Dia, 1" Cut Length', diameter: 0.25, cutLength: 1.0, flutes: 2, rpm: [16000, 18000] }
+            ],
+            downcut: [
+                { id: 'RD1600', name: 'RD1600 - 1/8" Dia, 1/2" Cut', diameter: 0.125, cutLength: 0.5, flutes: 2, rpm: [16000, 18000] },
+                { id: 'RD1800', name: 'RD1800 - 3/16" Dia, 3/4" Cut', diameter: 0.1875, cutLength: 0.75, flutes: 2, rpm: [16000, 18000] },
+                { id: 'RD2075', name: 'RD2075 - 1/4" Dia, 3/4" Cut', diameter: 0.25, cutLength: 0.75, flutes: 2, rpm: [16000, 18000] }
+            ],
+            compression: [
+                { id: 'COMP', name: '1/4" Compression Spiral', diameter: 0.25, cutLength: 0.75, flutes: 2, rpm: [16000, 18000] }
+            ],
+            ballnose: [
+                { id: 'BALL-1/8', name: '1/8" Ball Nose', diameter: 0.125, cutLength: 0.5, flutes: 2, rpm: [18000, 20000] },
+                { id: 'BALL-3/16', name: '3/16" Ball Nose', diameter: 0.1875, cutLength: 0.75, flutes: 2, rpm: [16000, 18000] },
+                { id: 'BALL-1/4', name: '1/4" Ball Nose', diameter: 0.25, cutLength: 0.75, flutes: 2, rpm: [16000, 18000] }
+            ],
+            tapered: [
+                { id: 'SC54', name: 'SC54 - Tapered Ball 1/16" Radius', diameter: 0.0625, cutLength: 0.5, flutes: 2, rpm: [18000, 20000] },
+                { id: 'SC55', name: 'SC55 - Tapered Ball 3/32" Radius', diameter: 0.09375, cutLength: 0.5, flutes: 2, rpm: [18000, 20000] },
+                { id: 'SC56', name: 'SC56 - Tapered Ball 1/8" Radius', diameter: 0.125, cutLength: 0.5, flutes: 2, rpm: [18000, 20000] },
+                { id: 'SC66', name: 'SC66 - Tapered Ball 1/8" (4-flute)', diameter: 0.125, cutLength: 0.5, flutes: 4, rpm: [18000, 20000] },
+                { id: 'SC70', name: 'SC70 - Tapered Ball 3/16" Radius', diameter: 0.1875, cutLength: 0.75, flutes: 2, rpm: [18000, 20000] },
+                { id: 'SC71', name: 'SC71 - Tapered Ball 1/4" Radius', diameter: 0.25, cutLength: 0.75, flutes: 2, rpm: [16000, 18000] }
+            ],
+            vbit: [
+                { id: '1568', name: '1568 - 1/8" Radius Roundover', diameter: 0.125, cutLength: 0.25, flutes: 2, rpm: [18000, 20000] },
+                { id: '1570', name: '1570 - 3/16" Radius Roundover', diameter: 0.1875, cutLength: 0.375, flutes: 2, rpm: [18000, 20000] },
+                { id: '1572', name: '1572 - 1/4" Radius Roundover', diameter: 0.25, cutLength: 0.5, flutes: 2, rpm: [16000, 18000] },
+                { id: '1574', name: '1574 - 3/8" Radius Roundover', diameter: 0.375, cutLength: 0.625, flutes: 2, rpm: [14000, 16000] }
+            ],
+            specialty: [
+                { id: 'SC62', name: 'SC62 - Flat Bottom Veining', diameter: 0.0625, cutLength: 0.375, flutes: 2, rpm: [18000, 20000] },
+                { id: 'SC33', name: 'SC33 - Flat Bottom Veining', diameter: 0.125, cutLength: 0.5, flutes: 2, rpm: [18000, 20000] },
+                { id: '1370', name: '1370 - Bowl & Tray (7/16")', diameter: 0.4375, cutLength: 0.625, flutes: 2, rpm: [14000, 16000] },
+                { id: '1372', name: '1372 - Bowl & Tray (1/4")', diameter: 0.25, cutLength: 0.625, flutes: 2, rpm: [16000, 18000] },
+                { id: '2050', name: '2050 - Plunge Roundover (1/8")', diameter: 0.125, cutLength: 0.25, flutes: 2, rpm: [18000, 20000] },
+                { id: '2051', name: '2051 - Plunge Roundover (3/16")', diameter: 0.1875, cutLength: 0.25, flutes: 2, rpm: [18000, 20000] },
+                { id: '2052', name: '2052 - Plunge Roundover (1/4")', diameter: 0.25, cutLength: 0.375, flutes: 2, rpm: [16000, 18000] },
+                { id: 'SC50', name: 'SC50 - Carving Liner 5/8"', diameter: 0.625, cutLength: 0.625, flutes: 2, rpm: [12000, 14000] }
+            ]
+        };
+        
+        // Chipload recommendations (inches per tooth) - STUDENT-FRIENDLY & SAFE for educational settings
+        // Based on research and real-world workshop experience
+        // Values are conservative but productive - advanced users can increase via custom calculator
+        const chiploadData = {
+            plywood: {
+                '0.125': { roughing: 0.0040, finishing: 0.0025, pocketing: 0.0035, profiling: 0.0030 },
+                '0.1875': { roughing: 0.0045, finishing: 0.0030, pocketing: 0.0040, profiling: 0.0035 },
+                '0.25': { roughing: 0.0045, finishing: 0.0030, pocketing: 0.0040, profiling: 0.0035 },
+                'default': { roughing: 0.0045, finishing: 0.0030, pocketing: 0.0040, profiling: 0.0035 }
+            },
+            softwood: {
+                '0.125': { roughing: 0.0045, finishing: 0.0025, pocketing: 0.0040, profiling: 0.0030 },
+                '0.1875': { roughing: 0.0050, finishing: 0.0030, pocketing: 0.0045, profiling: 0.0035 },
+                '0.25': { roughing: 0.0050, finishing: 0.0030, pocketing: 0.0045, profiling: 0.0035 },
+                'default': { roughing: 0.0050, finishing: 0.0030, pocketing: 0.0045, profiling: 0.0035 }
+            },
+            hardwood: {
+                '0.125': { roughing: 0.0040, finishing: 0.0025, pocketing: 0.0035, profiling: 0.0030 },
+                '0.1875': { roughing: 0.0045, finishing: 0.0030, pocketing: 0.0040, profiling: 0.0035 },
+                '0.25': { roughing: 0.0042, finishing: 0.0030, pocketing: 0.0038, profiling: 0.0035 },
+                'default': { roughing: 0.0042, finishing: 0.0030, pocketing: 0.0038, profiling: 0.0035 }
+            },
+            mdf: {
+                '0.125': { roughing: 0.0050, finishing: 0.0030, pocketing: 0.0045, profiling: 0.0035 },
+                '0.1875': { roughing: 0.0055, finishing: 0.0035, pocketing: 0.0050, profiling: 0.0040 },
+                '0.25': { roughing: 0.0055, finishing: 0.0035, pocketing: 0.0050, profiling: 0.0040 },
+                'default': { roughing: 0.0055, finishing: 0.0035, pocketing: 0.0050, profiling: 0.0040 }
+            },
+            acrylic: {
+                '0.125': { roughing: 0.0025, finishing: 0.0020, pocketing: 0.0022, profiling: 0.0022 },
+                '0.1875': { roughing: 0.0028, finishing: 0.0020, pocketing: 0.0025, profiling: 0.0025 },
+                '0.25': { roughing: 0.0030, finishing: 0.0020, pocketing: 0.0025, profiling: 0.0025 },
+                'default': { roughing: 0.0030, finishing: 0.0020, pocketing: 0.0025, profiling: 0.0025 }
+            }
+        };
+        
+        // Depth per pass factors (multiplied by bit diameter) - Conservative for educational settings
+        const depthFactors = {
+            plywood: { roughing: 0.6, finishing: 0.25, pocketing: 0.5, profiling: 0.4 },
+            softwood: { roughing: 0.75, finishing: 0.25, pocketing: 0.6, profiling: 0.5 },
+            hardwood: { roughing: 0.5, finishing: 0.2, pocketing: 0.5, profiling: 0.4 },  // 0.125" for 1/4" bit
+            mdf: { roughing: 0.75, finishing: 0.3, pocketing: 0.6, profiling: 0.5 },
+            acrylic: { roughing: 0.25, finishing: 0.15, pocketing: 0.2, profiling: 0.2 }
+        };
+        
+        // Stepover percentages
+        const stepoverPercents = {
+            roughing: { min: 40, max: 50 },
+            finishing: { min: 10, max: 15 },
+            pocketing: { min: 40, max: 50 },
+            profiling: { min: 100, max: 100 } // Full width for profiling
+        };
+        
+        function updateBitList() {
+            const category = document.getElementById('bitCategory').value;
+            const bitSelect = document.getElementById('bit');
+            
+            bitSelect.innerHTML = '<option value="">-- Select Bit --</option>';
+            
+            if (category && bitDatabase[category]) {
+                bitDatabase[category].forEach(bit => {
+                    const option = document.createElement('option');
+                    option.value = bit.id;
+                    option.textContent = bit.name;
+                    bitSelect.appendChild(option);
+                });
+            }
+        }
+        
+        function getBitById(bitId) {
+            for (let category in bitDatabase) {
+                const bit = bitDatabase[category].find(b => b.id === bitId);
+                if (bit) return bit;
+            }
+            return null;
+        }
+        
+        function getChipload(material, diameter, operation) {
+            const materialData = chiploadData[material];
+            if (!materialData) return 0.008; // Default fallback
+            
+            const diameterKey = diameter.toString();
+            const chiploadSet = materialData[diameterKey] || materialData['default'];
+            
+            return chiploadSet[operation] || 0.008;
+        }
+        
+        function calculate() {
+            // Get input values
+            const material = document.getElementById('material').value;
+            const operation = document.getElementById('operation').value;
+            const bitId = document.getElementById('bit').value;
+            const rpm = parseInt(document.getElementById('rpm').value);
+            
+            // Validation
+            if (!material || !operation || !bitId) {
+                alert('Please select all required fields: Material, Operation, and Bit');
+                return;
+            }
+            
+            // Get bit data
+            const bit = getBitById(bitId);
+            if (!bit) {
+                alert('Invalid bit selection');
+                return;
+            }
+            
+            // Get chipload
+            const chipload = getChipload(material, bit.diameter, operation);
+            
+            // Calculate feed rate: RPM × Flutes × Chipload
+            let feedRate = Math.round(rpm * bit.flutes * chipload);
+            
+            // Safety cap at 200 IPM for educational/workshop setting
+            const originalFeedRate = feedRate;
+            feedRate = Math.min(feedRate, 200);
+            const wasCapped = originalFeedRate > 200;
+            
+            // Calculate plunge rate: min(30% of feed rate, 60 IPM cap for safety)
+            // Conservative for students to prevent crashes and bit chipping
+            const plungeRate = Math.min(Math.round(feedRate * 0.3), 60);
+            
+            // Calculate depth per pass
+            const depthFactor = depthFactors[material][operation];
+            const depthPerPass = (bit.diameter * depthFactor).toFixed(3);
+            
+            // Get stepover percentage
+            const stepoverRange = stepoverPercents[operation];
+            const stepoverAvg = Math.round((stepoverRange.min + stepoverRange.max) / 2);
+            
+            // Display bit info
+            const bitInfoHtml = `
+                <p><strong>Bit:</strong> ${bit.name}</p>
+                <p><strong>Diameter:</strong> ${bit.diameter}" | <strong>Flutes:</strong> ${bit.flutes} | <strong>Recommended RPM:</strong> ${bit.rpm[0]}-${bit.rpm[1]}</p>
+                <p><strong>Chipload Used:</strong> ${chipload.toFixed(4)}" per tooth</p>
+                <p style="font-size: 0.85em; color: #666; margin-top: 8px;"><em>Note: Conservative, student-friendly values (130-150 IPM typical). Advanced users can increase feeds via Custom Calculator. Feed rates >160 IPM marked as aggressive.</em></p>
+            `;
+            document.getElementById('bitInfo').innerHTML = bitInfoHtml;
+            
+            // Display results
+            const resultsHtml = `
+                <div class="result-card">
+                    <h3>Feed Rate</h3>
+                    <div class="value">${feedRate}<span class="unit">IPM</span></div>
+                </div>
+                <div class="result-card">
+                    <h3>Plunge Rate</h3>
+                    <div class="value">${plungeRate}<span class="unit">IPM</span></div>
+                </div>
+                <div class="result-card">
+                    <h3>Depth per Pass</h3>
+                    <div class="value">${depthPerPass}<span class="unit">inches</span></div>
+                </div>
+                <div class="result-card">
+                    <h3>Stepover</h3>
+                    <div class="value">${stepoverAvg}<span class="unit">%</span></div>
+                    <p style="font-size: 0.8em; margin-top: 5px; color: #7f8c8d;">(${stepoverRange.min}-${stepoverRange.max}%)</p>
+                </div>
+            `;
+            document.getElementById('resultsGrid').innerHTML = resultsHtml;
+            
+            // Check for warnings
+            let warningsHtml = '';
+            
+            if (wasCapped) {
+                warningsHtml += `
+                    <div class="info-box">
+                        🛡️ <strong>Safety Cap Applied:</strong> Calculated feed rate (${originalFeedRate} IPM) was capped at 200 IPM for safety in educational/workshop settings.
+                    </div>
+                `;
+            }
+            
+            // Mark aggressive feeds (>160 IPM)
+            if (feedRate > 160 && !wasCapped) {
+                warningsHtml += `
+                    <div class="warning">
+                        ⚡ <strong>Aggressive Feed Rate:</strong> ${feedRate} IPM is at the high end for educational settings. This is suitable for production work with experienced users. Students should start at 130-150 IPM range and work up gradually.
+                    </div>
+                `;
+            }
+            
+            if (rpm < bit.rpm[0] || rpm > bit.rpm[1]) {
+                warningsHtml += `
+                    <div class="warning">
+                        ⚠️ <strong>RPM Warning:</strong> Your RPM (${rpm}) is outside the recommended range of ${bit.rpm[0]}-${bit.rpm[1]} for this bit.
+                    </div>
+                `;
+            }
+            
+            if (material === 'hardwood' && operation === 'roughing') {
+                warningsHtml += `
+                    <div class="info-box">
+                        💡 <strong>Tip:</strong> When roughing hardwoods like cherry, maple, or walnut, listen for changes in motor sound and adjust feed rate accordingly to prevent burning.
+                    </div>
+                `;
+            }
+            
+            if (material === 'acrylic') {
+                warningsHtml += `
+                    <div class="info-box">
+                        💡 <strong>Acrylic Tip:</strong> Use higher RPM and avoid very slow feeds to prevent melting. Keep chips clear to avoid heat buildup.
+                    </div>
+                `;
+            }
+            
+            document.getElementById('warnings').innerHTML = warningsHtml;
+            
+            // Show results section
+            document.getElementById('results').classList.add('show');
+            
+            // Scroll to results
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+        
+        function toggleCustom() {
+            const customSection = document.getElementById('customOverride');
+            customSection.classList.toggle('show');
+        }
+        
+        function reverseCalculate() {
+            // Get user inputs
+            const desiredDepth = parseFloat(document.getElementById('reverseDepth').value);
+            const desiredStepover = parseFloat(document.getElementById('reverseStepover').value);
+            const customChiploadInput = document.getElementById('customChipload').value;
+            
+            // Validation
+            if (!desiredDepth || !desiredStepover) {
+                alert('Please enter both Depth per Pass and Stepover values');
+                return;
+            }
+            
+            // Get current settings from main calculator
+            const material = document.getElementById('material').value;
+            const operation = document.getElementById('operation').value;
+            const bitId = document.getElementById('bit').value;
+            const rpm = parseInt(document.getElementById('rpm').value);
+            
+            if (!material || !operation || !bitId) {
+                alert('Please run the main calculator first to select material, operation, and bit');
+                return;
+            }
+            
+            // Get bit data
+            const bit = getBitById(bitId);
+            if (!bit) {
+                alert('Invalid bit selection');
+                return;
+            }
+            
+            // Get chipload - use custom if provided, otherwise use recommended
+            let chipload;
+            let chiploadSource;
+            if (customChiploadInput && parseFloat(customChiploadInput) > 0) {
+                chipload = parseFloat(customChiploadInput);
+                chiploadSource = 'Custom';
+            } else {
+                chipload = getChipload(material, bit.diameter, operation);
+                chiploadSource = 'Recommended';
+            }
+            
+            // Calculate feed rate based on chipload
+            let feedRate = Math.round(rpm * bit.flutes * chipload);
+            
+            // Apply depth adjustment factor if depth is different from standard
+            const standardDepthFactor = depthFactors[material][operation];
+            const standardDepth = bit.diameter * standardDepthFactor;
+            const depthRatio = desiredDepth / standardDepth;
+            
+            // If cutting deeper, reduce feed rate; if shallower, can increase slightly
+            if (depthRatio > 1) {
+                feedRate = Math.round(feedRate / Math.sqrt(depthRatio));
+            } else if (depthRatio < 1) {
+                feedRate = Math.round(feedRate * Math.min(1.2, 1 / Math.sqrt(depthRatio)));
+            }
+            
+            // Cap at 200 IPM for safety
+            const originalFeedRate = feedRate;
+            feedRate = Math.min(feedRate, 200);
+            const wasCapped = originalFeedRate > 200;
+            
+            // Calculate plunge rate: min(30% of feed rate, 60 IPM cap for safety)
+            // Conservative for students to prevent crashes and bit chipping
+            const plungeRate = Math.min(Math.round(feedRate * 0.3), 60);
+            
+            // Display results
+            const bitInfoHtml = `
+                <p><strong>Bit:</strong> ${bit.name}</p>
+                <p><strong>Diameter:</strong> ${bit.diameter}" | <strong>Flutes:</strong> ${bit.flutes} | <strong>RPM:</strong> ${rpm}</p>
+                <p><strong>Chipload Used:</strong> ${chipload.toFixed(4)}" per tooth (${chiploadSource})</p>
+                <p style="font-size: 0.85em; color: #e65100; margin-top: 8px;"><strong>Custom Calculation:</strong> Feed rates optimized for your depth (${desiredDepth}") and stepover (${desiredStepover}%)</p>
+            `;
+            document.getElementById('bitInfo').innerHTML = bitInfoHtml;
+            
+            const resultsHtml = `
+                <div class="result-card">
+                    <h3>Feed Rate (Calculated)</h3>
+                    <div class="value">${feedRate}<span class="unit">IPM</span></div>
+                </div>
+                <div class="result-card">
+                    <h3>Plunge Rate (Calculated)</h3>
+                    <div class="value">${plungeRate}<span class="unit">IPM</span></div>
+                </div>
+                <div class="result-card">
+                    <h3>Depth per Pass (Your Input)</h3>
+                    <div class="value">${desiredDepth.toFixed(3)}<span class="unit">inches</span></div>
+                </div>
+                <div class="result-card">
+                    <h3>Stepover (Your Input)</h3>
+                    <div class="value">${desiredStepover}<span class="unit">%</span></div>
+                </div>
+            `;
+            document.getElementById('resultsGrid').innerHTML = resultsHtml;
+            
+            // Warnings
+            let warningsHtml = `
+                <div class="info-box">
+                    🔄 <strong>Custom Calculation Active:</strong> Feed rates calculated from your desired depth (${desiredDepth}") and stepover (${desiredStepover}%).
+                </div>
+            `;
+            
+            if (wasCapped) {
+                warningsHtml += `
+                    <div class="info-box">
+                        🛡️ <strong>Safety Cap Applied:</strong> Calculated feed rate (${originalFeedRate} IPM) was capped at 200 IPM for safety.
+                    </div>
+                `;
+            }
+            
+            if (depthRatio > 1.5) {
+                warningsHtml += `
+                    <div class="warning">
+                        ⚠️ <strong>Deep Cut Warning:</strong> Your depth (${desiredDepth}") is ${(depthRatio * 100).toFixed(0)}% deeper than recommended. Feed rate reduced for safety. Consider multiple passes.
+                    </div>
+                `;
+            }
+            
+            document.getElementById('warnings').innerHTML = warningsHtml;
+            
+            // Show results
+            document.getElementById('results').classList.add('show');
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    </script>
+</body>
+</html>
