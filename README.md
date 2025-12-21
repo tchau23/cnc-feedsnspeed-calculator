@@ -43,10 +43,11 @@ This calculator provides safe, conservative cutting parameters optimized for **e
 
 ### 🛡️ Safety Features
 - **Feed Rate Cap** - Maximum 200 IPM for safety
-- **Conservative Plunge Rates** - Formula: `min(Feed × 0.3, 60 IPM)`
+- **Plunge Rates** - Formula: `Feed × 0.5` (50% of feed rate)
 - **Aggressive Feed Warnings** - Alerts when speeds exceed 160 IPM
 - **Student-Friendly Defaults** - Typical range: 130-150 IPM
 - **Test Cut Reminders** - Built-in safety messaging
+- **Smart Rounding** - All values rounded to nearest 0 or 5 for easy input
 
 ### 🎛️ Custom Calculator
 Enter your preferred cutting parameters:
@@ -63,7 +64,7 @@ The calculator automatically computes optimal feed and plunge rates while respec
 ### Option 1: Use Online (Recommended)
 Visit the live calculator:
 ```
-https://github.com/tchau23/cnc-feedsnspeed-calculator/ 
+https://tchau23.github.io/cnc-feedsnspeed-calculator/
 ```
 
 ### Option 2: Download and Run Locally
@@ -106,8 +107,8 @@ All values optimized for **1/4" diameter, 2-flute bits at 18,000 RPM**:
 
 | Parameter | Formula | Cap | Notes |
 |-----------|---------|-----|-------|
-| **Feed Rate** | RPM × Flutes × Chipload | 200 IPM | Capped for safety |
-| **Plunge Rate** | min(Feed × 0.3, 60 IPM) | 60 IPM | Very conservative |
+| **Feed Rate** | RPM × Flutes × Chipload | 200 IPM | Rounded to nearest 0 or 5, capped for safety |
+| **Plunge Rate** | Feed × 0.5 | None | 50% of feed rate, rounded to nearest 0 or 5 |
 | **Depth per Pass** | Bit Diameter × Material Factor | Varies | Typically 0.125" for 1/4" bit in hardwood |
 | **Stepover** | Operation-dependent | 50% max | 40-50% roughing, 10-15% finishing |
 
@@ -120,8 +121,8 @@ All values optimized for **1/4" diameter, 2-flute bits at 18,000 RPM**:
 - RPM: 18,000
 
 **Results:**
-- Feed Rate: 137 IPM
-- Plunge Rate: 41 IPM
+- Feed Rate: 140 IPM (rounded to nearest 5)
+- Plunge Rate: 70 IPM (50% of feed rate)
 - Depth per Pass: 0.125"
 - Stepover: 45%
 
@@ -132,8 +133,8 @@ All values optimized for **1/4" diameter, 2-flute bits at 18,000 RPM**:
 - RPM: 18,000
 
 **Results:**
-- Feed Rate: 198 IPM (marked aggressive)
-- Plunge Rate: 59 IPM
+- Feed Rate: 200 IPM (capped at max, marked aggressive)
+- Plunge Rate: 100 IPM (50% of feed rate)
 - Depth per Pass: 0.188"
 - Stepover: 45%
 
@@ -173,13 +174,14 @@ This calculator is specifically designed for **workshop and classroom environmen
 ### Feed Rate
 ```
 Feed Rate (IPM) = RPM × Number of Flutes × Chipload
+(Rounded to nearest 0 or 5)
 ```
 
 ### Plunge Rate
 ```
-Plunge Rate (IPM) = min(Feed Rate × 0.3, 60)
+Plunge Rate (IPM) = Feed Rate × 0.5
+(50% of feed rate, rounded to nearest 0 or 5)
 ```
-Conservative 30% ratio with absolute 60 IPM cap prevents bit crashes.
 
 ### Depth per Pass
 ```
