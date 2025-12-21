@@ -314,12 +314,12 @@ Please credit:
 
 **Questions about the calculator?**
 - Visit the MIX Workshop during open hours
-- Contact MIX staff via GMU channels
+- Contact MIX staff via Discord channels
 
 **Questions about CNC machining at GMU?**
 - Attend MIX workshop training sessions
 - Schedule one-on-one consultations
-- Join the MIX student community
+- Join the MIX student community on Mason360
 
 ---
 
