@@ -13,7 +13,7 @@
         
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #0a0a0a;
             padding: 20px;
             min-height: 100vh;
         }
@@ -21,17 +21,19 @@
         .container {
             max-width: 1000px;
             margin: 0 auto;
-            background: white;
+            background: #1a1a1a;
             border-radius: 15px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
             overflow: hidden;
+            border: 1px solid #2a2a2a;
         }
         
         .header {
-            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
-            color: white;
+            background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%);
+            color: #ffffff;
             padding: 30px;
             text-align: center;
+            border-bottom: 2px solid #ff6b35;
         }
         
         .header h1 {
@@ -49,10 +51,11 @@
         }
         
         .input-section {
-            background: #f8f9fa;
+            background: #0f0f0f;
             padding: 25px;
             border-radius: 10px;
             margin-bottom: 25px;
+            border: 1px solid #2a2a2a;
         }
         
         .input-group {
@@ -63,7 +66,7 @@
             display: block;
             font-weight: 600;
             margin-bottom: 8px;
-            color: #2c3e50;
+            color: #ff6b35;
             font-size: 0.95em;
         }
         
@@ -71,16 +74,18 @@
         .input-group input {
             width: 100%;
             padding: 12px;
-            border: 2px solid #ddd;
+            border: 2px solid #2a2a2a;
             border-radius: 8px;
             font-size: 1em;
             transition: border-color 0.3s;
+            background: #1a1a1a;
+            color: #ffffff;
         }
         
         .input-group select:focus,
         .input-group input:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: #ff6b35;
         }
         
         .two-column {
@@ -92,8 +97,8 @@
         .calculate-btn {
             width: 100%;
             padding: 15px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            background: linear-gradient(135deg, #ff6b35 0%, #ff8c42 100%);
+            color: #0a0a0a;
             border: none;
             border-radius: 10px;
             font-size: 1.1em;
@@ -105,7 +110,7 @@
         
         .calculate-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 5px 20px rgba(255, 107, 53, 0.4);
         }
         
         .calculate-btn:active {
@@ -113,11 +118,12 @@
         }
         
         .results-section {
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            background: #0f0f0f;
             padding: 25px;
             border-radius: 10px;
             margin-bottom: 25px;
             display: none;
+            border: 1px solid #2a2a2a;
         }
         
         .results-section.show {
@@ -144,14 +150,15 @@
         }
         
         .result-card {
-            background: white;
+            background: #1a1a1a;
             padding: 20px;
             border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            border: 1px solid #2a2a2a;
         }
         
         .result-card h3 {
-            color: #667eea;
+            color: #ff6b35;
             font-size: 0.9em;
             margin-bottom: 8px;
             text-transform: uppercase;
@@ -161,73 +168,75 @@
         .result-card .value {
             font-size: 1.8em;
             font-weight: 700;
-            color: #2c3e50;
+            color: #ffffff;
         }
         
         .result-card .unit {
             font-size: 0.9em;
-            color: #7f8c8d;
+            color: #888888;
             margin-left: 5px;
         }
         
         .warning {
-            background: #fff3cd;
+            background: #2a1f00;
             border-left: 4px solid #ffc107;
             padding: 15px;
             border-radius: 5px;
             margin-top: 15px;
-            color: #856404;
+            color: #ffeb3b;
         }
         
         .info-box {
-            background: #e3f2fd;
-            border-left: 4px solid #2196f3;
+            background: #2a1a00;
+            border-left: 4px solid #ff6b35;
             padding: 15px;
             border-radius: 5px;
             margin-top: 15px;
-            color: #0d47a1;
+            color: #ffaa77;
         }
         
         .formula-section {
-            background: #fff;
+            background: #1a1a1a;
             padding: 20px;
             border-radius: 10px;
             margin-top: 20px;
-            border: 2px solid #e0e0e0;
+            border: 2px solid #2a2a2a;
         }
         
         .formula-section h3 {
-            color: #2c3e50;
+            color: #ffffff;
             margin-bottom: 15px;
         }
         
         .formula {
-            background: #f8f9fa;
+            background: #0f0f0f;
             padding: 10px;
             border-radius: 5px;
             font-family: 'Courier New', monospace;
             margin: 10px 0;
-            border-left: 3px solid #667eea;
+            border-left: 3px solid #ff6b35;
+            color: #cccccc;
         }
         
         .bit-info {
-            background: #e8eaf6;
+            background: #1a1a1a;
             padding: 15px;
             border-radius: 8px;
             margin-top: 15px;
+            border: 1px solid #2a2a2a;
         }
         
         .bit-info p {
             margin: 5px 0;
-            color: #2c3e50;
+            color: #cccccc;
         }
         
         .custom-override {
-            background: #fff3e0;
+            background: #1a1a1a;
             padding: 20px;
             border-radius: 10px;
             margin-top: 20px;
-            border: 2px dashed #ff9800;
+            border: 2px solid #ff6b35;
             display: none;
         }
         
@@ -236,13 +245,13 @@
         }
         
         .custom-override h3 {
-            color: #e65100;
+            color: #ff6b35;
             margin-bottom: 15px;
         }
         
         .toggle-custom {
-            background: #ff9800;
-            color: white;
+            background: #ff6b35;
+            color: #0a0a0a;
             border: none;
             padding: 10px 20px;
             border-radius: 5px;
@@ -252,15 +261,16 @@
         }
         
         .toggle-custom:hover {
-            background: #f57c00;
+            background: #ff8c42;
         }
         
         .footer {
-            background: #2c3e50;
-            color: white;
+            background: #0f0f0f;
+            color: #888888;
             text-align: center;
             padding: 20px;
             font-size: 0.9em;
+            border-top: 2px solid #ff6b35;
         }
         
         @media (max-width: 768px) {
@@ -298,7 +308,7 @@
         
         <div class="main-content">
             <div class="input-section">
-                <h2 style="margin-bottom: 20px; color: #2c3e50;">Input Parameters</h2>
+                <h2 style="margin-bottom: 20px; color: #ffffff;">Input Parameters</h2>
                 
                 <div class="two-column">
                     <div class="input-group">
@@ -356,7 +366,7 @@
             </div>
             
             <div class="results-section" id="results">
-                <h2 style="margin-bottom: 15px; color: #2c3e50;">📊 Calculated Results</h2>
+                <h2 style="margin-bottom: 15px; color: #ffffff;">📊 Calculated Results</h2>
                 
                 <div class="bit-info" id="bitInfo"></div>
                 
@@ -367,10 +377,10 @@
                 <div class="formula-section">
                     <h3>📐 Formulas Used</h3>
                     <div class="formula">
-                        <strong>Feed Rate (IPM)</strong> = RPM × Number of Flutes × Chip Load
+                        <strong>Feed Rate (IPM)</strong> = RPM × Number of Flutes × Chip Load (rounded to nearest 0 or 5)
                     </div>
                     <div class="formula">
-                        <strong>Plunge Rate (IPM)</strong> = min(Feed Rate × 0.3, 60 IPM) — Conservative for safety
+                        <strong>Plunge Rate (IPM)</strong> = Feed Rate × 0.5 (50% of feed rate, rounded to nearest 0 or 5)
                     </div>
                     <div class="formula">
                         <strong>Depth per Pass</strong> = Bit Diameter × Material Factor
@@ -383,7 +393,7 @@
             
             <div class="custom-override" id="customOverride">
                 <h3>⚙️ Custom Calculator</h3>
-                <p style="margin-bottom: 15px; color: #5d4037;">Enter your preferred cutting parameters. Feed rates will be calculated automatically:</p>
+                <p style="margin-bottom: 15px; color: #888888;">Enter your preferred cutting parameters. Feed rates will be calculated automatically:</p>
                 
                 <div class="two-column">
                     <div class="input-group">
@@ -532,6 +542,12 @@
             }
         }
         
+        // Round to nearest 0 or 5 (round up)
+        function roundToNearestFive(value) {
+            const rounded = Math.ceil(value / 5) * 5;
+            return rounded;
+        }
+        
         function getBitById(bitId) {
             for (let category in bitDatabase) {
                 const bit = bitDatabase[category].find(b => b.id === bitId);
@@ -574,16 +590,18 @@
             const chipload = getChipload(material, bit.diameter, operation);
             
             // Calculate feed rate: RPM × Flutes × Chipload
-            let feedRate = Math.round(rpm * bit.flutes * chipload);
+            let feedRate = rpm * bit.flutes * chipload;
+            
+            // Round to nearest 0 or 5
+            feedRate = roundToNearestFive(feedRate);
             
             // Safety cap at 200 IPM for educational/workshop setting
             const originalFeedRate = feedRate;
             feedRate = Math.min(feedRate, 200);
             const wasCapped = originalFeedRate > 200;
             
-            // Calculate plunge rate: min(30% of feed rate, 60 IPM cap for safety)
-            // Conservative for students to prevent crashes and bit chipping
-            const plungeRate = Math.min(Math.round(feedRate * 0.3), 60);
+            // Calculate plunge rate: 50% of feed rate (rounded to nearest 0 or 5)
+            const plungeRate = roundToNearestFive(feedRate * 0.5);
             
             // Calculate depth per pass
             const depthFactor = depthFactors[material][operation];
@@ -724,7 +742,7 @@
             }
             
             // Calculate feed rate based on chipload
-            let feedRate = Math.round(rpm * bit.flutes * chipload);
+            let feedRate = rpm * bit.flutes * chipload;
             
             // Apply depth adjustment factor if depth is different from standard
             const standardDepthFactor = depthFactors[material][operation];
@@ -733,26 +751,28 @@
             
             // If cutting deeper, reduce feed rate; if shallower, can increase slightly
             if (depthRatio > 1) {
-                feedRate = Math.round(feedRate / Math.sqrt(depthRatio));
+                feedRate = feedRate / Math.sqrt(depthRatio);
             } else if (depthRatio < 1) {
-                feedRate = Math.round(feedRate * Math.min(1.2, 1 / Math.sqrt(depthRatio)));
+                feedRate = feedRate * Math.min(1.2, 1 / Math.sqrt(depthRatio));
             }
+            
+            // Round to nearest 0 or 5
+            feedRate = roundToNearestFive(feedRate);
             
             // Cap at 200 IPM for safety
             const originalFeedRate = feedRate;
             feedRate = Math.min(feedRate, 200);
             const wasCapped = originalFeedRate > 200;
             
-            // Calculate plunge rate: min(30% of feed rate, 60 IPM cap for safety)
-            // Conservative for students to prevent crashes and bit chipping
-            const plungeRate = Math.min(Math.round(feedRate * 0.3), 60);
+            // Calculate plunge rate: 50% of feed rate (rounded to nearest 0 or 5)
+            const plungeRate = roundToNearestFive(feedRate * 0.5);
             
             // Display results
             const bitInfoHtml = `
                 <p><strong>Bit:</strong> ${bit.name}</p>
                 <p><strong>Diameter:</strong> ${bit.diameter}" | <strong>Flutes:</strong> ${bit.flutes} | <strong>RPM:</strong> ${rpm}</p>
                 <p><strong>Chipload Used:</strong> ${chipload.toFixed(4)}" per tooth (${chiploadSource})</p>
-                <p style="font-size: 0.85em; color: #e65100; margin-top: 8px;"><strong>Custom Calculation:</strong> Feed rates optimized for your depth (${desiredDepth}") and stepover (${desiredStepover}%)</p>
+                <p style="font-size: 0.85em; color: #ff6b35; margin-top: 8px;"><strong>Custom Calculation:</strong> Feed rates optimized for your depth (${desiredDepth}") and stepover (${desiredStepover}%)</p>
             `;
             document.getElementById('bitInfo').innerHTML = bitInfoHtml;
             
