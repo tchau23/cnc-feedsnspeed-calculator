@@ -15,6 +15,7 @@ This calculator provides safe, conservative cutting parameters optimized for **e
 - VCarve Pro CAM Software
 - Mach4 Controller
 - Mixed skill level users (beginner to advanced)
+<img width="1023" height="917" alt="image" src="https://github.com/user-attachments/assets/e008b8d8-a5d7-4ba4-a8d1-b04674985d69" />
 
 ---
 
@@ -166,6 +167,7 @@ This calculator is specifically designed for **workshop and classroom environmen
 - Ability to override all parameters
 - Access to underlying formulas
 - Can push speeds for production work
+<img width="1065" height="647" alt="image" src="https://github.com/user-attachments/assets/6347281b-0e5d-4983-9454-d4da8467aef0" />
 
 ---
 
