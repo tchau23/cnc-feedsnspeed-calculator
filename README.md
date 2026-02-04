@@ -1,4 +1,4 @@
-# 🔧 CNC Feeds & Speeds Calculator
+# 🔧 Wood CNC Feeds & Speeds Calculator
 
 A student-friendly, research-backed feeds and speeds calculator designed for the **Mason Innovation Exchange (MIX) Fabrication Lab** at George Mason University.
 
