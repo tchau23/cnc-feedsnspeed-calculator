@@ -155,6 +155,53 @@
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.5);
             border: 1px solid #2a2a2a;
+            cursor: pointer;
+            transition: border-color 0.2s, transform 0.15s, box-shadow 0.2s;
+            position: relative;
+            user-select: none;
+        }
+
+        .result-card:hover {
+            border-color: #ff6b35;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(255, 107, 53, 0.2);
+        }
+
+        .result-card:active {
+            transform: translateY(0);
+        }
+
+        .result-card .copy-hint {
+            position: absolute;
+            top: 8px;
+            right: 10px;
+            font-size: 0.7em;
+            color: #555;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .result-card:hover .copy-hint {
+            opacity: 1;
+        }
+
+        .result-card.copied {
+            border-color: #4caf50 !important;
+        }
+
+        .result-card.copied .copy-hint {
+            opacity: 1;
+            color: #4caf50;
+        }
+
+        @keyframes copyFlash {
+            0% { background: #1a1a1a; }
+            30% { background: #1a2a1a; }
+            100% { background: #1a1a1a; }
+        }
+
+        .result-card.copied {
+            animation: copyFlash 0.6s ease;
         }
         
         .result-card h3 {
@@ -263,6 +310,39 @@
         .toggle-custom:hover {
             background: #ff8c42;
         }
+
+        /* Ramp section styling */
+        .ramp-section {
+            background: #1a1a1a;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border: 2px solid #2a2a2a;
+        }
+
+        .ramp-section h3 {
+            color: #ffffff;
+            margin-bottom: 15px;
+        }
+
+        .ramp-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .ramp-diagram {
+            margin-top: 15px;
+            background: #0f0f0f;
+            border-radius: 8px;
+            padding: 15px;
+            border: 1px solid #2a2a2a;
+            text-align: center;
+        }
+
+        .ramp-diagram svg {
+            max-width: 100%;
+        }
         
         .footer {
             background: #0f0f0f;
@@ -282,7 +362,8 @@
                 font-size: 1.5em;
             }
             
-            .results-grid {
+            .results-grid,
+            .ramp-grid {
                 grid-template-columns: 1fr;
             }
         }
@@ -366,27 +447,41 @@
             </div>
             
             <div class="results-section" id="results">
-                <h2 style="margin-bottom: 15px; color: #ffffff;">📊 Calculated Results</h2>
+                <h2 style="margin-bottom: 5px; color: #ffffff;">📊 Calculated Results</h2>
+                <p style="font-size: 0.8em; color: #666; margin-bottom: 10px;">Click any value to copy it to clipboard</p>
                 
                 <div class="bit-info" id="bitInfo"></div>
                 
                 <div class="results-grid" id="resultsGrid"></div>
+
+                <!-- Ramp Section -->
+                <div class="ramp-section" id="rampSection">
+                    <h3>📐 Ramp Entry Parameters</h3>
+                    <div class="ramp-grid" id="rampGrid"></div>
+                    <div class="ramp-diagram" id="rampDiagram"></div>
+                </div>
                 
                 <div id="warnings"></div>
                 
                 <div class="formula-section">
                     <h3>📐 Formulas Used</h3>
                     <div class="formula">
-                        <strong>Feed Rate (IPM)</strong> = RPM × Number of Flutes × Chip Load (rounded to nearest 0 or 5)
+                        <strong>Feed Rate (IPM)</strong> = RPM × Number of Flutes × Chip Load (rounded up to nearest 5)
                     </div>
                     <div class="formula">
-                        <strong>Plunge Rate (IPM)</strong> = Feed Rate × 0.5 (50% of feed rate, rounded to nearest 0 or 5)
+                        <strong>Plunge Rate (IPM)</strong> = Feed Rate × 0.5 (50% of feed rate, rounded up to nearest 5)
                     </div>
                     <div class="formula">
                         <strong>Depth per Pass</strong> = Bit Diameter × Material Factor
                     </div>
                     <div class="formula">
                         <strong>Stepover %</strong> = Based on operation type and bit geometry
+                    </div>
+                    <div class="formula">
+                        <strong>Ramp Angle</strong> = Based on material hardness (1.5°–5°) and bit geometry
+                    </div>
+                    <div class="formula">
+                        <strong>Ramp Distance</strong> = Depth per Pass ÷ tan(Ramp Angle)
                     </div>
                 </div>
             </div>
@@ -426,7 +521,9 @@
     </div>
     
     <script>
-        // Whiteside Bit Database (from catalog photo + online specs)
+        // =============================================
+        // Whiteside Bit Database
+        // =============================================
         const bitDatabase = {
             upcut: [
                 { id: 'RU1600', name: 'RU1600 - 1/8" Dia, 1/2" Cut Length', diameter: 0.125, cutLength: 0.5, flutes: 2, rpm: [16000, 18000] },
@@ -473,9 +570,9 @@
             ]
         };
         
-        // Chipload recommendations (inches per tooth) - STUDENT-FRIENDLY & SAFE for educational settings
-        // Based on research and real-world workshop experience
-        // Values are conservative but productive - advanced users can increase via custom calculator
+        // =============================================
+        // Chipload Data (inches per tooth)
+        // =============================================
         const chiploadData = {
             plywood: {
                 '0.125': { roughing: 0.0040, finishing: 0.0025, pocketing: 0.0035, profiling: 0.0030 },
@@ -509,11 +606,11 @@
             }
         };
         
-        // Depth per pass factors (multiplied by bit diameter) - Conservative for educational settings
+        // Depth per pass factors
         const depthFactors = {
             plywood: { roughing: 0.6, finishing: 0.25, pocketing: 0.5, profiling: 0.4 },
             softwood: { roughing: 0.75, finishing: 0.25, pocketing: 0.6, profiling: 0.5 },
-            hardwood: { roughing: 0.5, finishing: 0.2, pocketing: 0.5, profiling: 0.4 },  // 0.125" for 1/4" bit
+            hardwood: { roughing: 0.5, finishing: 0.2, pocketing: 0.5, profiling: 0.4 },
             mdf: { roughing: 0.75, finishing: 0.3, pocketing: 0.6, profiling: 0.5 },
             acrylic: { roughing: 0.25, finishing: 0.15, pocketing: 0.2, profiling: 0.2 }
         };
@@ -523,8 +620,66 @@
             roughing: { min: 40, max: 50 },
             finishing: { min: 10, max: 15 },
             pocketing: { min: 40, max: 50 },
-            profiling: { min: 100, max: 100 } // Full width for profiling
+            profiling: { min: 100, max: 100 }
         };
+
+        // =============================================
+        // Ramp Angle Data (degrees)
+        // Based on material hardness, bit diameter, and operation
+        // Softer materials allow steeper ramp angles
+        // Smaller bits need shallower angles to avoid breakage
+        // =============================================
+        const rampAngleData = {
+            plywood: {
+                base: 3.0,         // Base angle in degrees
+                smallBitAdj: -0.5, // Adjustment for bits < 3/16"
+                largeBitAdj: 0.5,  // Adjustment for bits >= 1/4"
+                roughAdj: -0.5,    // Roughing: shallower (more load)
+                finishAdj: 1.0,    // Finishing: can be steeper (light cuts)
+                min: 1.5,
+                max: 5.0
+            },
+            softwood: {
+                base: 3.5,
+                smallBitAdj: -0.5,
+                largeBitAdj: 0.5,
+                roughAdj: -0.5,
+                finishAdj: 1.0,
+                min: 2.0,
+                max: 5.0
+            },
+            hardwood: {
+                base: 2.0,
+                smallBitAdj: -0.5,
+                largeBitAdj: 0.3,
+                roughAdj: -0.5,
+                finishAdj: 0.5,
+                min: 1.0,
+                max: 3.5
+            },
+            mdf: {
+                base: 4.0,
+                smallBitAdj: -0.5,
+                largeBitAdj: 0.5,
+                roughAdj: -0.5,
+                finishAdj: 1.0,
+                min: 2.0,
+                max: 5.0
+            },
+            acrylic: {
+                base: 1.5,
+                smallBitAdj: -0.3,
+                largeBitAdj: 0.3,
+                roughAdj: -0.3,
+                finishAdj: 0.3,
+                min: 1.0,
+                max: 3.0
+            }
+        };
+
+        // =============================================
+        // Utility Functions
+        // =============================================
         
         function updateBitList() {
             const category = document.getElementById('bitCategory').value;
@@ -542,10 +697,8 @@
             }
         }
         
-        // Round to nearest 0 or 5 (round up)
         function roundToNearestFive(value) {
-            const rounded = Math.ceil(value / 5) * 5;
-            return rounded;
+            return Math.ceil(value / 5) * 5;
         }
         
         function getBitById(bitId) {
@@ -558,161 +711,278 @@
         
         function getChipload(material, diameter, operation) {
             const materialData = chiploadData[material];
-            if (!materialData) return 0.008; // Default fallback
-            
+            if (!materialData) return 0.008;
             const diameterKey = diameter.toString();
             const chiploadSet = materialData[diameterKey] || materialData['default'];
-            
             return chiploadSet[operation] || 0.008;
         }
-        
+
+        // =============================================
+        // Ramp Calculation
+        // =============================================
+        function calculateRamp(material, operation, bitDiameter, depthPerPass) {
+            const rampData = rampAngleData[material];
+            if (!rampData) return { angle: 3, distance: 1.0 };
+
+            // Start with base angle
+            let angle = rampData.base;
+
+            // Adjust for bit diameter
+            if (bitDiameter < 0.1875) {
+                angle += rampData.smallBitAdj;  // Shallower for small bits
+            } else if (bitDiameter >= 0.25) {
+                angle += rampData.largeBitAdj;  // Steeper OK for larger bits
+            }
+
+            // Adjust for operation type
+            if (operation === 'roughing' || operation === 'pocketing') {
+                angle += rampData.roughAdj;
+            } else if (operation === 'finishing') {
+                angle += rampData.finishAdj;
+            }
+
+            // Clamp to material min/max
+            angle = Math.max(rampData.min, Math.min(rampData.max, angle));
+
+            // Round angle to nearest 0.5°
+            angle = Math.round(angle * 2) / 2;
+
+            // Calculate ramp distance: depth / tan(angle)
+            const angleRad = angle * (Math.PI / 180);
+            let distance = parseFloat(depthPerPass) / Math.tan(angleRad);
+
+            // Round distance to 3 decimal places
+            distance = Math.round(distance * 1000) / 1000;
+
+            return { angle, distance };
+        }
+
+        function generateRampSVG(angle, distance, depth) {
+            const svgW = 360, svgH = 140;
+            const margin = 30;
+            const groundY = svgH - margin;
+            const startX = margin + 20;
+
+            // Scale: figure out pixel lengths
+            const maxHorizPx = svgW - 2 * margin - 40;
+            const maxVertPx = 60;
+
+            // Proportional drawing
+            const depthVal = parseFloat(depth);
+            const distVal = parseFloat(distance);
+
+            const horizPx = Math.min(maxHorizPx, Math.max(80, maxHorizPx * 0.7));
+            const vertPx = Math.min(maxVertPx, Math.max(20, maxVertPx * 0.8));
+
+            const endX = startX + horizPx;
+            const topY = groundY - vertPx;
+
+            return `
+            <svg width="${svgW}" height="${svgH}" viewBox="0 0 ${svgW} ${svgH}" xmlns="http://www.w3.org/2000/svg">
+                <!-- Background -->
+                <rect width="${svgW}" height="${svgH}" fill="#0f0f0f" rx="5"/>
+                
+                <!-- Material block -->
+                <rect x="${startX - 10}" y="${topY - 10}" width="${horizPx + 50}" height="${vertPx + 10 + margin - (svgH - groundY)}" 
+                      fill="#2a2200" stroke="#ff6b35" stroke-width="0.5" stroke-dasharray="4,2" rx="3" opacity="0.3"/>
+                <text x="${startX + horizPx + 50}" y="${groundY - vertPx/2 + 4}" fill="#666" font-size="10" text-anchor="start">Material</text>
+                
+                <!-- Ground line (material surface) -->
+                <line x1="${startX - 15}" y1="${groundY}" x2="${endX + 40}" y2="${groundY}" stroke="#555" stroke-width="1" stroke-dasharray="4,2"/>
+                
+                <!-- Ramp line -->
+                <line x1="${startX}" y1="${groundY}" x2="${endX}" y2="${topY}" stroke="#ff6b35" stroke-width="2.5"/>
+                
+                <!-- Start point -->
+                <circle cx="${startX}" cy="${groundY}" r="4" fill="#ff6b35"/>
+                
+                <!-- End point -->
+                <circle cx="${endX}" cy="${topY}" r="4" fill="#ff6b35"/>
+                
+                <!-- Vertical depth line -->
+                <line x1="${endX}" y1="${groundY}" x2="${endX}" y2="${topY}" stroke="#4caf50" stroke-width="1.5" stroke-dasharray="4,2"/>
+                
+                <!-- Depth label -->
+                <text x="${endX + 8}" y="${groundY - vertPx/2 + 4}" fill="#4caf50" font-size="11" font-weight="600">${depth}"</text>
+                <text x="${endX + 8}" y="${groundY - vertPx/2 + 16}" fill="#4caf50" font-size="9">depth</text>
+                
+                <!-- Horizontal distance line -->
+                <line x1="${startX}" y1="${groundY + 18}" x2="${endX}" y2="${groundY + 18}" stroke="#ff6b35" stroke-width="1"/>
+                <line x1="${startX}" y1="${groundY + 13}" x2="${startX}" y2="${groundY + 23}" stroke="#ff6b35" stroke-width="1"/>
+                <line x1="${endX}" y1="${groundY + 13}" x2="${endX}" y2="${groundY + 23}" stroke="#ff6b35" stroke-width="1"/>
+                <text x="${(startX + endX) / 2}" y="${groundY + 32}" fill="#ff6b35" font-size="11" text-anchor="middle" font-weight="600">${distance}"</text>
+                
+                <!-- Angle arc -->
+                <path d="M ${startX + 30} ${groundY} A 30 30 0 0 0 ${startX + 30 * Math.cos(-angle * Math.PI / 180)} ${groundY + 30 * Math.sin(-angle * Math.PI / 180)}" 
+                      fill="none" stroke="#ffc107" stroke-width="1.5"/>
+                <text x="${startX + 38}" y="${groundY - 6}" fill="#ffc107" font-size="11" font-weight="600">${angle}°</text>
+                
+                <!-- Bit representation at end -->
+                <rect x="${endX - 3}" y="${topY - 25}" width="6" height="25" fill="#888" rx="1" opacity="0.6"/>
+                <polygon points="${endX - 5},${topY} ${endX + 5},${topY} ${endX},${topY + 5}" fill="#888" opacity="0.6"/>
+                
+                <!-- Title -->
+                <text x="${svgW / 2}" y="18" fill="#888" font-size="11" text-anchor="middle">Ramp Entry Diagram</text>
+            </svg>`;
+        }
+
+        // =============================================
+        // Click-to-Copy
+        // =============================================
+        function copyValue(card, value) {
+            // Copy the numeric value to clipboard
+            navigator.clipboard.writeText(value).then(() => {
+                // Visual feedback
+                card.classList.add('copied');
+                const hint = card.querySelector('.copy-hint');
+                if (hint) {
+                    hint.textContent = '✓ Copied!';
+                }
+                setTimeout(() => {
+                    card.classList.remove('copied');
+                    if (hint) hint.textContent = 'Click to copy';
+                }, 1200);
+            }).catch(() => {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = value;
+                textArea.style.position = 'fixed';
+                textArea.style.opacity = '0';
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+
+                card.classList.add('copied');
+                const hint = card.querySelector('.copy-hint');
+                if (hint) hint.textContent = '✓ Copied!';
+                setTimeout(() => {
+                    card.classList.remove('copied');
+                    if (hint) hint.textContent = 'Click to copy';
+                }, 1200);
+            });
+        }
+
+        function makeResultCard(title, value, unit, extraHtml) {
+            const cleanValue = String(value).replace(/[^\d.\-]/g, '');
+            const extra = extraHtml || '';
+            return `
+                <div class="result-card" onclick="copyValue(this, '${cleanValue}')">
+                    <span class="copy-hint">Click to copy</span>
+                    <h3>${title}</h3>
+                    <div class="value">${value}<span class="unit">${unit}</span></div>
+                    ${extra}
+                </div>
+            `;
+        }
+
+        // =============================================
+        // Main Calculate
+        // =============================================
         function calculate() {
-            // Get input values
             const material = document.getElementById('material').value;
             const operation = document.getElementById('operation').value;
             const bitId = document.getElementById('bit').value;
             const rpm = parseInt(document.getElementById('rpm').value);
             
-            // Validation
             if (!material || !operation || !bitId) {
                 alert('Please select all required fields: Material, Operation, and Bit');
                 return;
             }
             
-            // Get bit data
             const bit = getBitById(bitId);
-            if (!bit) {
-                alert('Invalid bit selection');
-                return;
-            }
+            if (!bit) { alert('Invalid bit selection'); return; }
             
-            // Get chipload
             const chipload = getChipload(material, bit.diameter, operation);
             
-            // Calculate feed rate: RPM × Flutes × Chipload
             let feedRate = rpm * bit.flutes * chipload;
-            
-            // Round to nearest 0 or 5
             feedRate = roundToNearestFive(feedRate);
             
-            // Safety cap at 200 IPM for educational/workshop setting
             const originalFeedRate = feedRate;
             feedRate = Math.min(feedRate, 200);
             const wasCapped = originalFeedRate > 200;
             
-            // Calculate plunge rate: 50% of feed rate (rounded to nearest 0 or 5)
             const plungeRate = roundToNearestFive(feedRate * 0.5);
             
-            // Calculate depth per pass
             const depthFactor = depthFactors[material][operation];
             const depthPerPass = (bit.diameter * depthFactor).toFixed(3);
             
-            // Get stepover percentage
             const stepoverRange = stepoverPercents[operation];
             const stepoverAvg = Math.round((stepoverRange.min + stepoverRange.max) / 2);
+
+            // Calculate ramp parameters
+            const ramp = calculateRamp(material, operation, bit.diameter, depthPerPass);
             
-            // Display bit info
-            const bitInfoHtml = `
+            // Bit info
+            document.getElementById('bitInfo').innerHTML = `
                 <p><strong>Bit:</strong> ${bit.name}</p>
                 <p><strong>Diameter:</strong> ${bit.diameter}" | <strong>Flutes:</strong> ${bit.flutes} | <strong>Recommended RPM:</strong> ${bit.rpm[0]}-${bit.rpm[1]}</p>
                 <p><strong>Chipload Used:</strong> ${chipload.toFixed(4)}" per tooth</p>
                 <p style="font-size: 0.85em; color: #666; margin-top: 8px;"><em>Note: Conservative, student-friendly values (130-150 IPM typical). Advanced users can increase feeds via Custom Calculator. Feed rates >160 IPM marked as aggressive.</em></p>
             `;
-            document.getElementById('bitInfo').innerHTML = bitInfoHtml;
             
-            // Display results
-            const resultsHtml = `
-                <div class="result-card">
-                    <h3>Feed Rate</h3>
-                    <div class="value">${feedRate}<span class="unit">IPM</span></div>
-                </div>
-                <div class="result-card">
-                    <h3>Plunge Rate</h3>
-                    <div class="value">${plungeRate}<span class="unit">IPM</span></div>
-                </div>
-                <div class="result-card">
-                    <h3>Depth per Pass</h3>
-                    <div class="value">${depthPerPass}<span class="unit">inches</span></div>
-                </div>
-                <div class="result-card">
-                    <h3>Stepover</h3>
-                    <div class="value">${stepoverAvg}<span class="unit">%</span></div>
-                    <p style="font-size: 0.8em; margin-top: 5px; color: #7f8c8d;">(${stepoverRange.min}-${stepoverRange.max}%)</p>
-                </div>
-            `;
-            document.getElementById('resultsGrid').innerHTML = resultsHtml;
+            // Main results
+            document.getElementById('resultsGrid').innerHTML = 
+                makeResultCard('Feed Rate', feedRate, 'IPM') +
+                makeResultCard('Plunge Rate', plungeRate, 'IPM') +
+                makeResultCard('Depth per Pass', depthPerPass, 'inches') +
+                makeResultCard('Stepover', stepoverAvg, '%',
+                    `<p style="font-size: 0.8em; margin-top: 5px; color: #7f8c8d;">(${stepoverRange.min}-${stepoverRange.max}%)</p>`);
+
+            // Ramp results
+            document.getElementById('rampGrid').innerHTML =
+                makeResultCard('Ramp Angle', ramp.angle, '°') +
+                makeResultCard('Ramp Distance', ramp.distance, 'inches');
+
+            // Ramp diagram
+            document.getElementById('rampDiagram').innerHTML = generateRampSVG(ramp.angle, ramp.distance, depthPerPass);
             
-            // Check for warnings
+            // Warnings
             let warningsHtml = '';
             
             if (wasCapped) {
-                warningsHtml += `
-                    <div class="info-box">
-                        🛡️ <strong>Safety Cap Applied:</strong> Calculated feed rate (${originalFeedRate} IPM) was capped at 200 IPM for safety in educational/workshop settings.
-                    </div>
-                `;
+                warningsHtml += `<div class="info-box">🛡️ <strong>Safety Cap Applied:</strong> Calculated feed rate (${originalFeedRate} IPM) was capped at 200 IPM for safety in educational/workshop settings.</div>`;
             }
             
-            // Mark aggressive feeds (>160 IPM)
             if (feedRate > 160 && !wasCapped) {
-                warningsHtml += `
-                    <div class="warning">
-                        ⚡ <strong>Aggressive Feed Rate:</strong> ${feedRate} IPM is at the high end for educational settings. This is suitable for production work with experienced users. Students should start at 130-150 IPM range and work up gradually.
-                    </div>
-                `;
+                warningsHtml += `<div class="warning">⚡ <strong>Aggressive Feed Rate:</strong> ${feedRate} IPM is at the high end for educational settings. This is suitable for production work with experienced users. Students should start at 130-150 IPM range and work up gradually.</div>`;
             }
             
             if (rpm < bit.rpm[0] || rpm > bit.rpm[1]) {
-                warningsHtml += `
-                    <div class="warning">
-                        ⚠️ <strong>RPM Warning:</strong> Your RPM (${rpm}) is outside the recommended range of ${bit.rpm[0]}-${bit.rpm[1]} for this bit.
-                    </div>
-                `;
+                warningsHtml += `<div class="warning">⚠️ <strong>RPM Warning:</strong> Your RPM (${rpm}) is outside the recommended range of ${bit.rpm[0]}-${bit.rpm[1]} for this bit.</div>`;
             }
             
             if (material === 'hardwood' && operation === 'roughing') {
-                warningsHtml += `
-                    <div class="info-box">
-                        💡 <strong>Tip:</strong> When roughing hardwoods like cherry, maple, or walnut, listen for changes in motor sound and adjust feed rate accordingly to prevent burning.
-                    </div>
-                `;
+                warningsHtml += `<div class="info-box">💡 <strong>Tip:</strong> When roughing hardwoods like cherry, maple, or walnut, listen for changes in motor sound and adjust feed rate accordingly to prevent burning.</div>`;
             }
             
             if (material === 'acrylic') {
-                warningsHtml += `
-                    <div class="info-box">
-                        💡 <strong>Acrylic Tip:</strong> Use higher RPM and avoid very slow feeds to prevent melting. Keep chips clear to avoid heat buildup.
-                    </div>
-                `;
+                warningsHtml += `<div class="info-box">💡 <strong>Acrylic Tip:</strong> Use higher RPM and avoid very slow feeds to prevent melting. Keep chips clear to avoid heat buildup.</div>`;
             }
             
             document.getElementById('warnings').innerHTML = warningsHtml;
             
-            // Show results section
             document.getElementById('results').classList.add('show');
-            
-            // Scroll to results
             document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
         
         function toggleCustom() {
-            const customSection = document.getElementById('customOverride');
-            customSection.classList.toggle('show');
+            document.getElementById('customOverride').classList.toggle('show');
         }
         
+        // =============================================
+        // Custom / Reverse Calculate
+        // =============================================
         function reverseCalculate() {
-            // Get user inputs
             const desiredDepth = parseFloat(document.getElementById('reverseDepth').value);
             const desiredStepover = parseFloat(document.getElementById('reverseStepover').value);
             const customChiploadInput = document.getElementById('customChipload').value;
             
-            // Validation
             if (!desiredDepth || !desiredStepover) {
                 alert('Please enter both Depth per Pass and Stepover values');
                 return;
             }
             
-            // Get current settings from main calculator
             const material = document.getElementById('material').value;
             const operation = document.getElementById('operation').value;
             const bitId = document.getElementById('bit').value;
@@ -723,16 +993,10 @@
                 return;
             }
             
-            // Get bit data
             const bit = getBitById(bitId);
-            if (!bit) {
-                alert('Invalid bit selection');
-                return;
-            }
+            if (!bit) { alert('Invalid bit selection'); return; }
             
-            // Get chipload - use custom if provided, otherwise use recommended
-            let chipload;
-            let chiploadSource;
+            let chipload, chiploadSource;
             if (customChiploadInput && parseFloat(customChiploadInput) > 0) {
                 chipload = parseFloat(customChiploadInput);
                 chiploadSource = 'Custom';
@@ -741,87 +1005,65 @@
                 chiploadSource = 'Recommended';
             }
             
-            // Calculate feed rate based on chipload
             let feedRate = rpm * bit.flutes * chipload;
             
-            // Apply depth adjustment factor if depth is different from standard
             const standardDepthFactor = depthFactors[material][operation];
             const standardDepth = bit.diameter * standardDepthFactor;
             const depthRatio = desiredDepth / standardDepth;
             
-            // If cutting deeper, reduce feed rate; if shallower, can increase slightly
             if (depthRatio > 1) {
                 feedRate = feedRate / Math.sqrt(depthRatio);
             } else if (depthRatio < 1) {
                 feedRate = feedRate * Math.min(1.2, 1 / Math.sqrt(depthRatio));
             }
             
-            // Round to nearest 0 or 5
             feedRate = roundToNearestFive(feedRate);
             
-            // Cap at 200 IPM for safety
             const originalFeedRate = feedRate;
             feedRate = Math.min(feedRate, 200);
             const wasCapped = originalFeedRate > 200;
             
-            // Calculate plunge rate: 50% of feed rate (rounded to nearest 0 or 5)
             const plungeRate = roundToNearestFive(feedRate * 0.5);
+
+            // Calculate ramp for custom depth
+            const ramp = calculateRamp(material, operation, bit.diameter, desiredDepth.toFixed(3));
             
-            // Display results
-            const bitInfoHtml = `
+            // Bit info
+            document.getElementById('bitInfo').innerHTML = `
                 <p><strong>Bit:</strong> ${bit.name}</p>
                 <p><strong>Diameter:</strong> ${bit.diameter}" | <strong>Flutes:</strong> ${bit.flutes} | <strong>RPM:</strong> ${rpm}</p>
                 <p><strong>Chipload Used:</strong> ${chipload.toFixed(4)}" per tooth (${chiploadSource})</p>
                 <p style="font-size: 0.85em; color: #ff6b35; margin-top: 8px;"><strong>Custom Calculation:</strong> Feed rates optimized for your depth (${desiredDepth}") and stepover (${desiredStepover}%)</p>
             `;
-            document.getElementById('bitInfo').innerHTML = bitInfoHtml;
             
-            const resultsHtml = `
-                <div class="result-card">
-                    <h3>Feed Rate (Calculated)</h3>
-                    <div class="value">${feedRate}<span class="unit">IPM</span></div>
-                </div>
-                <div class="result-card">
-                    <h3>Plunge Rate (Calculated)</h3>
-                    <div class="value">${plungeRate}<span class="unit">IPM</span></div>
-                </div>
-                <div class="result-card">
-                    <h3>Depth per Pass (Your Input)</h3>
-                    <div class="value">${desiredDepth.toFixed(3)}<span class="unit">inches</span></div>
-                </div>
-                <div class="result-card">
-                    <h3>Stepover (Your Input)</h3>
-                    <div class="value">${desiredStepover}<span class="unit">%</span></div>
-                </div>
-            `;
-            document.getElementById('resultsGrid').innerHTML = resultsHtml;
+            // Results
+            document.getElementById('resultsGrid').innerHTML =
+                makeResultCard('Feed Rate (Calculated)', feedRate, 'IPM') +
+                makeResultCard('Plunge Rate (Calculated)', plungeRate, 'IPM') +
+                makeResultCard('Depth per Pass (Your Input)', desiredDepth.toFixed(3), 'inches') +
+                makeResultCard('Stepover (Your Input)', desiredStepover, '%');
+
+            // Ramp results
+            document.getElementById('rampGrid').innerHTML =
+                makeResultCard('Ramp Angle', ramp.angle, '°') +
+                makeResultCard('Ramp Distance', ramp.distance, 'inches');
+
+            // Ramp diagram
+            document.getElementById('rampDiagram').innerHTML = generateRampSVG(ramp.angle, ramp.distance, desiredDepth.toFixed(3));
             
             // Warnings
-            let warningsHtml = `
-                <div class="info-box">
-                    🔄 <strong>Custom Calculation Active:</strong> Feed rates calculated from your desired depth (${desiredDepth}") and stepover (${desiredStepover}%).
-                </div>
-            `;
+            let warningsHtml = `<div class="info-box">🔄 <strong>Custom Calculation Active:</strong> Feed rates calculated from your desired depth (${desiredDepth}") and stepover (${desiredStepover}%).</div>`;
             
             if (wasCapped) {
-                warningsHtml += `
-                    <div class="info-box">
-                        🛡️ <strong>Safety Cap Applied:</strong> Calculated feed rate (${originalFeedRate} IPM) was capped at 200 IPM for safety.
-                    </div>
-                `;
+                warningsHtml += `<div class="info-box">🛡️ <strong>Safety Cap Applied:</strong> Calculated feed rate (${originalFeedRate} IPM) was capped at 200 IPM for safety.</div>`;
             }
             
             if (depthRatio > 1.5) {
-                warningsHtml += `
-                    <div class="warning">
-                        ⚠️ <strong>Deep Cut Warning:</strong> Your depth (${desiredDepth}") is ${(depthRatio * 100).toFixed(0)}% deeper than recommended. Feed rate reduced for safety. Consider multiple passes.
-                    </div>
-                `;
+                warningsHtml += `<div class="warning">⚠️ <strong>Deep Cut Warning:</strong> Your depth (${desiredDepth}") is ${(depthRatio * 100).toFixed(0)}% deeper than recommended. Feed rate reduced for safety. Consider multiple passes.</div>`;
             }
             
             document.getElementById('warnings').innerHTML = warningsHtml;
             
-            // Show results
             document.getElementById('results').classList.add('show');
             document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
